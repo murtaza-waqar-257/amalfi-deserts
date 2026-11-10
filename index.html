@@ -59,6 +59,56 @@
   .qty{display:flex;align-items:center;gap:6px}
   .qty button{width:34px;height:34px;border-radius:9px;border:1px solid var(--line);background:#fff;font-size:18px;cursor:pointer}
   .qty span{min-width:22px;text-align:center;font-weight:600}
+
+  /* ---- simple mode ---- */
+  body{font-size:18px}
+  header.simple{padding:12px 16px}
+  header.simple .top{justify-content:space-between}
+  h1.small{font-size:20px}
+  .back{border:0;background:none;font:inherit;color:var(--brand);font-weight:600;padding:8px 0;cursor:pointer}
+  main.simple{padding:14px 14px 110px}
+  nav.bottom{position:fixed;bottom:0;left:0;right:0;z-index:10;display:flex;background:#fff;border-top:1px solid var(--line);padding:6px 6px calc(6px + env(safe-area-inset-bottom));margin:0;max-width:none}
+  nav.bottom button{flex:1;border:0;background:none;font:inherit;font-size:15px;color:var(--muted);padding:6px 0;display:flex;flex-direction:column;align-items:center;gap:2px;border-radius:12px;cursor:pointer}
+  nav.bottom button .ic{font-size:26px}
+  nav.bottom button.on{color:var(--brand);font-weight:600;background:var(--brand2)}
+  .alertbox{background:var(--outbg);color:var(--out);border-radius:16px;padding:16px;margin-bottom:14px;line-height:1.6}
+  .alertbox b{display:block;font-size:20px;margin-bottom:4px}
+  .okbox{background:var(--okbg);color:var(--ok)}
+  .list{display:flex;flex-direction:column;gap:10px}
+  .rowbtn{display:flex;align-items:center;gap:14px;width:100%;text-align:left;background:#fff;border:1px solid var(--line);border-radius:16px;padding:14px 16px;font:inherit;color:var(--ink);cursor:pointer;min-height:76px}
+  .rowbtn:active{background:var(--brand2)}
+  .emoji{font-size:34px;line-height:1}
+  .emoji.xl{font-size:56px}
+  .mid{flex:1;display:flex;flex-direction:column;gap:2px;min-width:0}
+  .nm{font-weight:600;font-size:19px}
+  .st{font-size:15px;font-weight:600}
+  .big{font-family:Fraunces,serif;font-size:32px;font-weight:600;text-align:right;line-height:1}
+  .big small{display:block;font-family:Inter;font-size:13px;font-weight:500;color:var(--muted)}
+  .chev{font-size:30px;color:var(--muted)}
+  .item-sheet{text-align:center;padding:6px 4px}
+  .item-sheet h2{font-size:24px;margin:6px 0}
+  .hugenum{font-family:Fraunces,serif;font-size:56px;font-weight:600;line-height:1.1}
+  .hugenum small{font-family:Inter;font-size:17px;color:var(--muted);font-weight:500}
+  .giant{display:block;width:100%;border:0;border-radius:16px;padding:20px;font:inherit;font-size:22px;font-weight:600;color:#fff;margin:10px 0;cursor:pointer}
+  .giant.green{background:var(--ok)} .giant.red{background:var(--out)}
+  .giant:disabled{opacity:.5}
+  .plain{display:block;width:100%;border:0;background:none;font:inherit;color:var(--muted);padding:14px;cursor:pointer;font-size:17px}
+  .q{font-weight:600;font-size:19px;margin:14px 0 10px}
+  .stepper{display:flex;align-items:center;justify-content:center;gap:22px;margin:8px 0}
+  .stepper button{width:72px;height:72px;border-radius:50%;border:2px solid var(--line);background:#fff;font-size:38px;color:var(--ink);cursor:pointer}
+  .stepper span{font-family:Fraunces,serif;font-size:58px;font-weight:600;min-width:90px}
+  .pills{display:flex;gap:8px;justify-content:center;margin:12px 0}
+  .pills.wrap{flex-wrap:wrap;justify-content:flex-start}
+  .pills button{border:2px solid var(--line);background:#fff;border-radius:99px;padding:12px 18px;font:inherit;font-size:17px;cursor:pointer;color:var(--ink)}
+  .pills button.on{border-color:var(--brand);background:var(--brand);color:#fff;font-weight:600}
+  .tiles{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+  @media(min-width:640px){.tiles{grid-template-columns:repeat(4,1fr)}}
+  .tile{position:relative;display:flex;flex-direction:column;align-items:center;gap:8px;padding:18px 10px;border:2px solid var(--line);background:#fff;border-radius:16px;font:inherit;font-size:16px;font-weight:500;color:var(--ink);min-height:120px;cursor:pointer;justify-content:center;text-align:center}
+  .tile.on{border-color:var(--ok);background:var(--okbg)}
+  .badge{position:absolute;top:8px;right:8px;background:var(--ok);color:#fff;border-radius:99px;min-width:32px;height:32px;display:flex;align-items:center;justify-content:center;font-size:18px}
+  .sellbar{position:fixed;left:0;right:0;bottom:84px;padding:10px 14px;background:linear-gradient(transparent,var(--bg) 30%);display:flex;gap:8px;align-items:center;z-index:9}
+  .sellbar .plain{width:auto}
+  .sellbar .giant{margin:0}
 </style>
 </head>
 <body>
@@ -73,7 +123,8 @@ const S = { user:null, me:null, tab:"stock", stock:[], menu:[], recipes:[], move
 const $ = (h) => { const t=document.createElement("template"); t.innerHTML=h.trim(); return t.content.firstChild; };
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const n = (v) => Number(v) % 1 ? Number(v).toFixed(2).replace(/0+$/,"") : Number(v);
-const plural = (q,u) => `${n(q)} ${u}${Number(q)===1?"":"s"}`;
+const pl = (w) => { w=String(w||""); return /(s|x|ch|sh)$/i.test(w) ? w+"es" : w+"s"; };
+const plural = (q,u) => `${n(q)} ${Number(q)===1?u:pl(u)}`;
 const when = (d) => new Date(d).toLocaleString("en-GB",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"});
 const isOwner = () => S.me?.role === "owner";
 function toast(msg){ const t=$(`<div class="toast">${esc(msg)}</div>`); document.body.append(t); setTimeout(()=>t.remove(),2600); }
@@ -151,92 +202,145 @@ async function addMove(stock_item_id, change, reason, note){
   if (error) throw error;
 }
 
+// ---------- Words (ready for a second language later) ----------
+const WORDS = {
+  stock:"Stock", sold:"Sold", more:"More", good:"Good", low:"Running low", none:"None left",
+  needOrder:(k)=> k===1 ? "1 thing needs ordering" : `${k} things need ordering`,
+  allGood:"Everything is OK 👍", add:"Add", takeOut:"Take out", fixCount:"Fix the count",
+  howMany:"How many?", save:"Save", cancel:"Cancel", used:"Used", thrown:"Thrown away",
+  whereFrom:"Where was it sold?", shop:"Shop", tapToAdd:"Tap what was sold", done:"Done — take off stock",
+  clear:"Clear", left:"left", history:"History", importOrders:"Upload delivery report", setup:"Settings", logout:"Log out",
+  countNow:"How many are there now?",
+};
+const W = (k, ...a) => typeof WORDS[k] === "function" ? WORDS[k](...a) : WORDS[k];
+const ICON = (name) => { const s=name.toLowerCase();
+  if (s.includes("brownie")) return "🍫"; if (s.includes("cookie")) return "🍪"; if (s.includes("cheesecake")) return "🍰";
+  if (s.includes("cake")) return "🎂"; if (s.includes("ice")) return "🍨"; if (s.includes("tub")) return "🥣";
+  if (s.includes("box")||s.includes("sharer")) return "📦"; if (s.includes("donut")||s.includes("doughnut")) return "🍩"; return "🧁"; };
+const STATUS = { ok:["good","var(--ok)"], low:["low","var(--low)"], out:["none","var(--out)"] };
+
 // ---------- Layout ----------
-const TABS = [["stock","Stock"],["sell","Record sale"],["import","Import orders"],["activity","Activity"],["setup","Setup"]];
+const TABS = [["stock","🍰","stock"],["sell","🛵","sold"],["more","☰","more"]];
+const SUB = { import:"importOrders", activity:"history", setup:"setup" };
 function render(){
   const app=document.getElementById("app"); app.innerHTML="";
-  const head=$(`<header><div class="top"><h1>Amalfi <span>Desserts</span></h1>
-    <div class="row"><span class="sub">${esc(S.me.email)} · ${S.me.role}</span><button class="b s" id="out">Log out</button></div></div>
-    <nav>${TABS.filter(([k])=>k!=="setup"||isOwner()).map(([k,l])=>`<button data-t="${k}" class="${S.tab===k?"on":""}">${l}</button>`).join("")}</nav></header>`);
-  head.querySelector("#out").onclick=()=>sb.auth.signOut();
-  head.querySelectorAll("nav button").forEach(b=>b.onclick=()=>{S.tab=b.dataset.t;render();});
-  const main=$(`<main></main>`);
-  app.append(head, main);
-  ({stock:viewStock,sell:viewSell,import:viewImport,activity:viewActivity,setup:viewSetup})[S.tab](main);
+  const inSub = SUB[S.tab];
+  const head=$(`<header class="simple"><div class="top">
+    ${inSub ? `<button class="back" id="back">‹ ${W("more")}</button><h1 class="small">${W(SUB[S.tab])}</h1><span></span>`
+            : `<h1>Amalfi <span>Desserts</span></h1>`}</div></header>`);
+  head.querySelector("#back")?.addEventListener("click",()=>{S.tab="more";render();});
+  const main=$(`<main class="simple"></main>`);
+  const nav=$(`<nav class="bottom">${TABS.map(([k,ic,w])=>`<button data-t="${k}" class="${(S.tab===k||(k==="more"&&inSub))?"on":""}"><span class="ic">${ic}</span>${W(w)}</button>`).join("")}</nav>`);
+  nav.querySelectorAll("button").forEach(b=>b.onclick=()=>{S.tab=b.dataset.t;render();window.scrollTo(0,0);});
+  app.append(head, main, nav);
+  ({stock:viewStock,sell:viewSell,more:viewMore,import:viewImport,activity:viewActivity,setup:viewSetup})[S.tab](main);
 }
 
-// ---------- Stock ----------
+// ---------- Stock (home) ----------
 function viewStock(main){
   const active=S.stock.filter(s=>s.active);
-  const out=active.filter(s=>s.status==="out"), low=active.filter(s=>s.status==="low");
-  if (out.length) main.append($(`<div class="banner">Out of stock: ${out.map(s=>esc(s.name)).join(", ")}</div>`));
-  if (low.length) main.append($(`<div class="banner warn">Running low: ${low.map(s=>`${esc(s.name)} (${plural(s.on_hand,s.unit)} left)`).join(", ")}</div>`));
-  if (!active.length) main.append($(`<div class="card muted">No stock items yet. ${isOwner()?"Add them in Setup.":""}</div>`));
-  const grid=$(`<div class="grid"></div>`);
-  for (const s of active){
-    const max=Math.max(Number(s.low_level)*3, Number(s.on_hand), 1);
-    const pct=Math.max(0,Math.min(100,Number(s.on_hand)/max*100));
-    const col=s.status==="ok"?"var(--ok)":s.status==="low"?"var(--low)":"var(--out)";
-    const packs = s.units_per_pack>1 ? ` · ≈ ${n(Math.floor(Number(s.on_hand)/s.units_per_pack*10)/10)} ${esc(s.pack_name||"packs")}` : "";
-    const c=$(`<div class="card item"><div class="row between"><h3>${esc(s.name)}</h3><span class="pill ${s.status}">${s.status==="ok"?"In stock":s.status==="low"?"Low":"Out"}</span></div>
-      <div class="num">${n(s.on_hand)} <span class="sub" style="font-family:Inter">${esc(s.unit)}s left${packs}</span></div>
-      <div class="bar"><i style="width:${pct}%;background:${col}"></i></div>
-      <div class="sub">Alert at ${plural(s.low_level,s.unit)} · in ${n(s.total_in)} · out ${n(s.total_out)}</div>
-      <div class="row" style="margin-top:12px"><button class="b s p" data-a="in">+ Add stock</button><button class="b s" data-a="used">Used / wasted</button>${isOwner()?`<button class="b s" data-a="count">Count</button>`:""}</div></div>`);
-    c.querySelector('[data-a="in"]').onclick=()=>moveDialog(s,"in");
-    c.querySelector('[data-a="used"]').onclick=()=>moveDialog(s,"used");
-    c.querySelector('[data-a="count"]')?.addEventListener("click",()=>moveDialog(s,"count"));
-    grid.append(c);
+  const need=active.filter(s=>s.status!=="ok").sort((a,b)=>Number(a.on_hand)-Number(b.on_hand));
+  main.append(need.length
+    ? $(`<div class="alertbox"><b>⚠️ ${W("needOrder",need.length)}</b><div>${need.map(s=>`${ICON(s.name)} ${esc(s.name)} — ${s.status==="out"?W("none"):plural(s.on_hand,s.unit)+" "+W("left")}`).join("<br>")}</div></div>`)
+    : $(`<div class="alertbox okbox"><b>${W("allGood")}</b></div>`));
+  if (!active.length) main.append($(`<p class="muted">No desserts added yet.</p>`));
+  const list=$(`<div class="list"></div>`);
+  for (const s of [...need, ...active.filter(x=>x.status==="ok")]){
+    const [w,col]=STATUS[s.status];
+    const r=$(`<button class="rowbtn"><span class="emoji">${ICON(s.name)}</span>
+      <span class="mid"><span class="nm">${esc(s.name)}</span><span class="st" style="color:${col}">● ${W(w)}</span></span>
+      <span class="big" style="color:${col}">${n(s.on_hand)}<small>${esc(pl(s.unit))}</small></span></button>`);
+    r.onclick=()=>itemScreen(s.id);
+    list.append(r);
   }
-  main.append(grid);
-}
-function closeModal(){ document.getElementById("modal").innerHTML=""; }
-function modal(html){ const m=$(`<div class="modal"><div class="card">${html}</div></div>`); m.onclick=(e)=>{if(e.target===m)closeModal();}; const box=document.getElementById("modal"); box.innerHTML=""; box.append(m); return m; }
-function moveDialog(s, kind){
-  const title = kind==="in"?`Add ${esc(s.name)}`:kind==="used"?`Take off ${esc(s.name)}`:`Count ${esc(s.name)}`;
-  const hasPack = s.units_per_pack>1;
-  const m=modal(`<h2>${title}</h2>
-    ${kind==="count"?`<p class="sub">Enter what's physically there now. Currently showing ${plural(s.on_hand,s.unit)}.</p>`:""}
-    <form><label>How many</label><div class="row"><input name="q" type="number" step="any" min="0" required style="flex:1" inputmode="decimal">
-    ${hasPack && kind!=="count"?`<select name="u"><option value="pack">${esc(s.pack_name||"pack")}s (×${n(s.units_per_pack)})</option><option value="unit">${esc(s.unit)}s</option></select>`:`<span class="muted">${esc(s.unit)}s</span>`}</div>
-    ${kind==="used"?`<label>Why</label><select name="r"><option value="used">Used / sold in shop</option><option value="waste">Wasted / expired</option></select>`:""}
-    <label>Note (optional)</label><input name="note" style="width:100%">
-    <div class="row" style="margin-top:16px;justify-content:flex-end"><button type="button" class="b" id="c">Cancel</button><button class="b p">Save</button></div></form>`);
-  m.querySelector("#c").onclick=closeModal;
-  m.querySelector("form").onsubmit=async(e)=>{
-    e.preventDefault(); const f=new FormData(e.target); let q=Number(f.get("q"));
-    if (f.get("u")==="pack") q*=Number(s.units_per_pack);
-    let change, reason;
-    if (kind==="in"){ change=q; reason="purchase"; }
-    else if (kind==="used"){ change=-q; reason=f.get("r"); }
-    else { change=q-Number(s.on_hand); reason="adjustment"; }
-    if (!change) { closeModal(); return toast("No change"); }
-    e.submitter.disabled=true;
-    try { await addMove(s.id, change, reason, f.get("note")||null); closeModal(); toast("Saved"); await loadAll(); render(); } catch(err){ e.submitter.disabled=false; fail(err); }
-  };
-  m.querySelector("input").focus();
+  main.append(list);
 }
 
-// ---------- Record sale ----------
-function viewSell(main){
-  const cart={};
-  const menu=S.menu.filter(m=>m.active);
-  const el=$(`<div class="card"><h2>Record a sale</h2><p class="sub">For orders not coming in automatically. Stock comes off straight away.</p>
-    <label>Where from</label><select id="ch"><option value="in_store">In shop</option><option value="deliveroo">Deliveroo</option><option value="ubereats">Uber Eats</option><option value="justeat">Just Eat</option><option value="other">Other</option></select>
-    <label>Order number (optional)</label><input id="oid" placeholder="e.g. Deliveroo order #" style="width:100%">
-    <table style="margin-top:12px"><tbody>${menu.map(m=>`<tr><td>${esc(m.name)}<div class="sub">${recipeText(m.id)}</div></td><td style="width:130px"><div class="qty"><button data-d="-1" data-id="${m.id}">−</button><span id="q${m.id}">0</span><button data-d="1" data-id="${m.id}">+</button></div></td></tr>`).join("")}</tbody></table>
-    <div class="row" style="justify-content:flex-end;margin-top:14px"><button class="b p" id="go" disabled>Record sale</button></div></div>`);
-  el.querySelectorAll(".qty button").forEach(b=>b.onclick=()=>{ const id=b.dataset.id; cart[id]=Math.max(0,(cart[id]||0)+Number(b.dataset.d)); el.querySelector("#q"+id).textContent=cart[id]; el.querySelector("#go").disabled=!Object.values(cart).some(v=>v>0); });
-  el.querySelector("#go").onclick=async(e)=>{
-    const lines=Object.entries(cart).filter(([,q])=>q>0).map(([id,qty])=>({name:S.menu.find(m=>m.id==id).name,qty}));
-    const ch=el.querySelector("#ch").value, oid=el.querySelector("#oid").value.trim() || `manual-${Date.now()}`;
+// Full-screen page for one dessert
+function itemScreen(id){
+  const s=S.stock.find(x=>x.id===id); if(!s) return;
+  const [w,col]=STATUS[s.status];
+  const m=modal(`<div class="item-sheet">
+    <div class="emoji xl">${ICON(s.name)}</div><h2>${esc(s.name)}</h2>
+    <div class="hugenum" style="color:${col}">${n(s.on_hand)} <small>${esc(pl(s.unit))} ${W("left")}</small></div>
+    ${s.units_per_pack>1?`<div class="muted">= ${n(Math.floor(s.on_hand/s.units_per_pack*10)/10)} ${esc(s.pack_name||"packs")}</div>`:""}
+    <div class="st" style="color:${col};margin:6px 0 18px">● ${W(w)}</div>
+    <button class="giant green" data-k="in">➕ ${W("add")}</button>
+    <button class="giant red" data-k="used">➖ ${W("takeOut")}</button>
+    <button class="plain" data-k="count">✏️ ${W("fixCount")}</button>
+    <button class="plain" id="c">${W("cancel")}</button></div>`);
+  m.querySelectorAll("[data-k]").forEach(b=>b.onclick=()=>amountScreen(s,b.dataset.k));
+  m.querySelector("#c").onclick=closeModal;
+}
+function amountScreen(s, kind){
+  const hasPack = s.units_per_pack>1 && kind!=="count";
+  let q = kind==="count" ? Math.max(0,Number(s.on_hand)) : 1, inPacks = hasPack && kind==="in", reason="used";
+  const title = kind==="in" ? `➕ ${W("add")}` : kind==="used" ? `➖ ${W("takeOut")}` : `✏️ ${W("fixCount")}`;
+  const m=modal(`<div class="item-sheet"><div class="emoji">${ICON(s.name)}</div><h2>${esc(s.name)}</h2>
+    <p class="q">${kind==="count"?W("countNow"):W("howMany")}</p>
+    <div class="stepper"><button id="minus">−</button><span id="qv"></span><button id="plus">+</button></div>
+    ${hasPack?`<div class="pills" id="units"><button data-p="1">${esc(pl(s.pack_name||"pack"))}</button><button data-p="0">${esc(pl(s.unit))}</button></div><div class="muted" id="eq"></div>`:`<div class="muted">${esc(pl(s.unit))}</div>`}
+    ${kind==="used"?`<div class="pills" id="why"><button data-r="used" class="on">${W("used")}</button><button data-r="waste">${W("thrown")}</button></div>`:""}
+    <button class="giant ${kind==="used"?"red":"green"}" id="save">${W("save")}</button>
+    <button class="plain" id="c">${W("cancel")}</button></div>`);
+  const draw=()=>{ m.querySelector("#qv").textContent=n(q);
+    m.querySelectorAll("#units button").forEach(b=>b.classList.toggle("on",(b.dataset.p==="1")===inPacks));
+    const eq=m.querySelector("#eq"); if(eq) eq.textContent = inPacks ? `= ${n(q*s.units_per_pack)} ${pl(s.unit)}` : ""; };
+  m.querySelector("#minus").onclick=()=>{ q=Math.max(0,q-1); draw(); };
+  m.querySelector("#plus").onclick=()=>{ q+=1; draw(); };
+  m.querySelectorAll("#units button").forEach(b=>b.onclick=()=>{ inPacks=b.dataset.p==="1"; draw(); });
+  m.querySelectorAll("#why button").forEach(b=>b.onclick=()=>{ reason=b.dataset.r; m.querySelectorAll("#why button").forEach(x=>x.classList.toggle("on",x===b)); });
+  m.querySelector("#c").onclick=closeModal;
+  m.querySelector("#save").onclick=async(e)=>{
+    const units = inPacks ? q*s.units_per_pack : q;
+    let change, why;
+    if (kind==="in"){ change=units; why="purchase"; } else if (kind==="used"){ change=-units; why=reason; } else { change=units-Number(s.on_hand); why="adjustment"; }
+    if (!change) { closeModal(); return; }
     e.target.disabled=true;
-    const { data, error } = await sb.rpc("record_order",{p_channel:ch,p_external_id:oid,p_lines:lines});
-    if (error) { e.target.disabled=false; return fail(error); }
-    toast(data.status==="duplicate" ? "That order number was already recorded" : "Sale recorded"); await loadAll(); render();
+    try { await addMove(s.id, change, why, null); closeModal(); toast(`✅ ${s.name}: ${change>0?"+":""}${n(change)}`); await loadAll(); render(); }
+    catch(err){ e.target.disabled=false; fail(err); }
+  };
+  draw();
+}
+
+function closeModal(){ document.getElementById("modal").innerHTML=""; }
+function modal(html){ const m=$(`<div class="modal"><div class="card">${html}</div></div>`); m.onclick=(e)=>{if(e.target===m)closeModal();}; const box=document.getElementById("modal"); box.innerHTML=""; box.append(m); return m; }
+
+// ---------- Sold ----------
+function viewSell(main){
+  const cart={}; let ch="in_store";
+  const menu=S.menu.filter(m=>m.active);
+  const CH=[["in_store","🏪",W("shop")],["deliveroo","🛵","Deliveroo"],["ubereats","🛵","Uber Eats"],["justeat","🛵","Just Eat"]];
+  const el=$(`<div><p class="q">${W("whereFrom")}</p>
+    <div class="pills wrap" id="ch">${CH.map(([k,ic,l])=>`<button data-c="${k}" class="${k===ch?"on":""}">${ic} ${l}</button>`).join("")}</div>
+    <p class="q">${W("tapToAdd")}</p>
+    <div class="tiles">${menu.map(m=>`<button class="tile" data-id="${m.id}"><span class="emoji">${ICON(m.name)}</span><span>${esc(m.name)}</span><b class="badge hide" id="b${m.id}">0</b></button>`).join("")}</div>
+    <div class="sellbar hide" id="bar"><button class="plain" id="clr">${W("clear")}</button><button class="giant green" id="go">${W("done")}</button></div></div>`);
+  const upd=()=>{ let tot=0; for (const m of menu){ const b=el.querySelector("#b"+m.id), v=cart[m.id]||0; tot+=v; b.textContent=v; b.classList.toggle("hide",!v); el.querySelector(`[data-id="${m.id}"]`).classList.toggle("on",v>0);} el.querySelector("#bar").classList.toggle("hide",!tot); };
+  el.querySelectorAll("#ch button").forEach(b=>b.onclick=()=>{ ch=b.dataset.c; el.querySelectorAll("#ch button").forEach(x=>x.classList.toggle("on",x===b)); });
+  el.querySelectorAll(".tile").forEach(t=>t.onclick=()=>{ cart[t.dataset.id]=(cart[t.dataset.id]||0)+1; upd(); });
+  el.querySelector("#clr").onclick=()=>{ for(const k in cart) delete cart[k]; upd(); };
+  el.querySelector("#go").onclick=async(e)=>{
+    const lines=Object.entries(cart).filter(([,v])=>v>0).map(([id,qty])=>({name:S.menu.find(m=>m.id==id).name,qty}));
+    e.target.disabled=true;
+    const { data, error } = await sb.rpc("record_order",{p_channel:ch,p_external_id:`manual-${Date.now()}`,p_lines:lines});
+    if (error){ e.target.disabled=false; return fail(error); }
+    toast("✅ Stock taken off"); await loadAll(); S.tab="stock"; render();
   };
   main.append(el);
 }
+
+// ---------- More ----------
+function viewMore(main){
+  const items=[["import","📄",W("importOrders")],["activity","🕘",W("history")]];
+  if (isOwner()) items.push(["setup","⚙️",W("setup")]);
+  const el=$(`<div class="list">${items.map(([k,ic,l])=>`<button class="rowbtn" data-t="${k}"><span class="emoji">${ic}</span><span class="mid"><span class="nm">${l}</span></span><span class="chev">›</span></button>`).join("")}
+    <button class="rowbtn" id="out"><span class="emoji">🚪</span><span class="mid"><span class="nm">${W("logout")}</span><span class="st muted">${esc(S.me.email)}</span></span></button></div>`);
+  el.querySelectorAll("[data-t]").forEach(b=>b.onclick=()=>{S.tab=b.dataset.t;render();});
+  el.querySelector("#out").onclick=()=>sb.auth.signOut();
+  main.append(el);
+}
+
 function recipeText(menuId){
   return S.recipes.filter(r=>r.menu_item_id===menuId).map(r=>{ const s=S.stock.find(x=>x.id===r.stock_item_id); return s?`uses ${plural(r.qty,s.unit)} ${esc(s.name)}`:""; }).join(", ") || '<span style="color:var(--out)">no recipe set: won\'t take stock off</span>';
 }
@@ -306,7 +410,7 @@ function viewSetup(main){
   const st=$(`<div class="section"><div class="row between"><h2>Stock items</h2><button class="b s p" id="add">+ New item</button></div>
     <p class="sub">What you count. Set the alert level for when to reorder.</p>
     <div class="card" style="padding:4px 12px;overflow-x:auto"><table><thead><tr><th>Name</th><th>Counted in</th><th>Pack</th><th>Alert at</th><th></th></tr></thead><tbody>
-    ${S.stock.map(s=>`<tr class="${s.active?"":"muted"}"><td>${esc(s.name)}</td><td>${esc(s.unit)}s</td><td>${s.units_per_pack>1?`1 ${esc(s.pack_name||"pack")} = ${n(s.units_per_pack)}`:"–"}</td><td>${n(s.low_level)}</td><td><button class="b s" data-e="${s.id}">Edit</button></td></tr>`).join("")}
+    ${S.stock.map(s=>`<tr class="${s.active?"":"muted"}"><td>${esc(s.name)}</td><td>${esc(pl(s.unit))}</td><td>${s.units_per_pack>1?`1 ${esc(s.pack_name||"pack")} = ${n(s.units_per_pack)}`:"–"}</td><td>${n(s.low_level)}</td><td><button class="b s" data-e="${s.id}">Edit</button></td></tr>`).join("")}
     </tbody></table></div></div>`);
   st.querySelector("#add").onclick=()=>itemDialog();
   st.querySelectorAll("[data-e]").forEach(b=>b.onclick=()=>itemDialog(S.stock.find(s=>s.id==b.dataset.e)));
