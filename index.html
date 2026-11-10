@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Amalfi Desserts · Stock</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.119.0/dist/umd/supabase.js"></script>
+<style>
+  :root{--bg:#fbf7f2;--card:#fff;--ink:#2b2118;--muted:#8a7b6d;--line:#eee3d6;--brand:#9c4a2f;--brand2:#f3e2d3;
+        --ok:#2f7d4f;--okbg:#e6f4ea;--low:#b26b00;--lowbg:#fff3dc;--out:#b42318;--outbg:#fde7e5;}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:Inter,system-ui,sans-serif;background:var(--bg);color:var(--ink);font-size:15px}
+  h1,h2,h3{font-family:Fraunces,Georgia,serif;font-weight:600;margin:0}
+  header{position:sticky;top:0;z-index:5;background:var(--bg);border-bottom:1px solid var(--line);padding:14px 16px 0}
+  .top{display:flex;align-items:center;justify-content:space-between;gap:8px;max-width:980px;margin:0 auto}
+  .top h1{font-size:22px} .top h1 span{color:var(--brand)}
+  nav{display:flex;gap:4px;overflow-x:auto;max-width:980px;margin:10px auto 0}
+  nav button{border:0;background:none;padding:10px 12px;font:inherit;color:var(--muted);border-bottom:2px solid transparent;cursor:pointer;white-space:nowrap}
+  nav button.on{color:var(--brand);border-color:var(--brand);font-weight:600}
+  main{max-width:980px;margin:0 auto;padding:16px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px}
+  .grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(260px,1fr))}
+  .item h3{font-size:18px}
+  .num{font-size:34px;font-weight:600;font-family:Fraunces,serif;margin:8px 0 2px}
+  .sub{color:var(--muted);font-size:13px}
+  .pill{display:inline-block;padding:3px 9px;border-radius:99px;font-size:12px;font-weight:600}
+  .ok{background:var(--okbg);color:var(--ok)} .low{background:var(--lowbg);color:var(--low)} .out{background:var(--outbg);color:var(--out)}
+  .bar{height:6px;background:var(--line);border-radius:9px;margin:10px 0;overflow:hidden}
+  .bar i{display:block;height:100%;border-radius:9px}
+  .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .between{justify-content:space-between}
+  button.b{border:1px solid var(--line);background:#fff;border-radius:10px;padding:9px 12px;font:inherit;cursor:pointer;color:var(--ink)}
+  button.b:hover{border-color:var(--brand)}
+  button.p{background:var(--brand);color:#fff;border-color:var(--brand)}
+  button.s{padding:6px 10px;font-size:13px}
+  button:disabled{opacity:.5;cursor:default}
+  input,select{font:inherit;padding:9px 10px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--ink);min-width:0}
+  label{display:block;font-size:13px;color:var(--muted);margin:10px 0 4px}
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  th,td{text-align:left;padding:8px 6px;border-bottom:1px solid var(--line);vertical-align:middle}
+  th{color:var(--muted);font-weight:500;font-size:13px}
+  .banner{border-radius:12px;padding:12px 14px;margin-bottom:14px;background:var(--outbg);color:var(--out);font-weight:500}
+  .banner.warn{background:var(--lowbg);color:var(--low)}
+  .muted{color:var(--muted)} .hide{display:none!important}
+  .auth{max-width:380px;margin:60px auto}
+  .auth input{width:100%}
+  .modal{position:fixed;inset:0;background:#2b211866;display:flex;align-items:flex-end;justify-content:center;z-index:20}
+  .modal .card{width:100%;max-width:440px;border-radius:18px 18px 0 0;max-height:90vh;overflow:auto}
+  @media(min-width:600px){.modal{align-items:center}.modal .card{border-radius:18px}}
+  @media(max-width:520px){.top .sub{display:none}}
+  .toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 16px;border-radius:10px;z-index:30;font-size:14px}
+  .section{margin-bottom:18px} .section h2{font-size:19px;margin-bottom:10px}
+  code{background:var(--brand2);padding:2px 6px;border-radius:6px;font-size:12.5px;word-break:break-all}
+  .seg{display:flex;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+  .seg button{flex:1;border:0;background:#fff;padding:9px;font:inherit;cursor:pointer}
+  .seg button.on{background:var(--brand);color:#fff}
+  .qty{display:flex;align-items:center;gap:6px}
+  .qty button{width:34px;height:34px;border-radius:9px;border:1px solid var(--line);background:#fff;font-size:18px;cursor:pointer}
+  .qty span{min-width:22px;text-align:center;font-weight:600}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="modal"></div>
+<script>
+const SUPABASE_URL = "https://byoufnhfuicamwqjdrkb.supabase.co";
+const SUPABASE_KEY = "sb_publishable_7NkSIWCpWoIjnQW9TjRXGw_qvdoaEOR"; // publishable key: safe in the browser
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+const S = { user:null, me:null, tab:"stock", stock:[], menu:[], recipes:[], moves:[], alerts:[], orders:[], staff:[], invites:[], settings:null };
+const $ = (h) => { const t=document.createElement("template"); t.innerHTML=h.trim(); return t.content.firstChild; };
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const n = (v) => Number(v) % 1 ? Number(v).toFixed(2).replace(/0+$/,"") : Number(v);
+const plural = (q,u) => `${n(q)} ${u}${Number(q)===1?"":"s"}`;
+const when = (d) => new Date(d).toLocaleString("en-GB",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"});
+const isOwner = () => S.me?.role === "owner";
+function toast(msg){ const t=$(`<div class="toast">${esc(msg)}</div>`); document.body.append(t); setTimeout(()=>t.remove(),2600); }
+function fail(e){ console.error(e); toast(e?.message || "Something went wrong"); }
+
+// ---------- Auth ----------
+async function boot(){
+  const { data:{ session } } = await sb.auth.getSession();
+  S.user = session?.user ?? null;
+  sb.auth.onAuthStateChange((_e, s) => { const was=S.user?.id; S.user = s?.user ?? null; if (was !== S.user?.id) start(); });
+  start();
+}
+async function start(){
+  if (!S.user) return renderAuth();
+  const { data } = await sb.from("staff").select("*").eq("user_id", S.user.id).maybeSingle();
+  S.me = data;
+  if (!S.me) return renderNoAccess();
+  await loadAll(); render(); listen();
+}
+function renderAuth(mode="in"){
+  const app=document.getElementById("app"); app.innerHTML="";
+  const el=$(`<div class="auth card">
+    <h1 style="font-size:26px">Amalfi <span style="color:var(--brand)">Desserts</span></h1>
+    <p class="muted" style="margin:6px 0 14px">Stock tracker</p>
+    <div class="seg"><button data-m="in" class="${mode==="in"?"on":""}">Log in</button><button data-m="up" class="${mode==="up"?"on":""}">Create account</button></div>
+    <form><label>Email</label><input name="email" type="email" required autocomplete="email">
+    <label>Password</label><input name="pw" type="password" minlength="8" required autocomplete="${mode==="in"?"current-password":"new-password"}">
+    <button class="b p" style="width:100%;margin-top:16px">${mode==="in"?"Log in":"Create account"}</button></form>
+    <p class="sub" style="margin-top:12px">${mode==="up"?"The first account becomes the owner. Staff need an invite from the owner first.":""}</p>
+    <p class="sub" id="msg"></p></div>`);
+  el.querySelectorAll(".seg button").forEach(b=>b.onclick=()=>renderAuth(b.dataset.m));
+  el.querySelector("form").onsubmit=async(e)=>{
+    e.preventDefault(); const f=new FormData(e.target); const email=f.get("email"), password=f.get("pw");
+    const msg=el.querySelector("#msg"); msg.textContent="…";
+    const r = mode==="in" ? await sb.auth.signInWithPassword({email,password})
+                          : await sb.auth.signUp({email,password,options:{emailRedirectTo:location.href.split("#")[0]}});
+    if (r.error) return msg.textContent = r.error.message;
+    if (mode==="up" && !r.data.session) msg.textContent = "Check your email to confirm your account, then log in.";
+  };
+  app.append(el);
+}
+function renderNoAccess(){
+  const app=document.getElementById("app"); app.innerHTML="";
+  const el=$(`<div class="auth card"><h2>Nearly there</h2><p class="muted">You're signed in as ${esc(S.user.email)}, but you haven't been added to the shop yet. Ask the owner to invite this email, then sign up again with it.</p><button class="b">Log out</button></div>`);
+  el.querySelector("button").onclick=()=>sb.auth.signOut(); app.append(el);
+}
+
+// ---------- Data ----------
+async function loadAll(){
+  const q = [
+    sb.from("stock_levels").select("*").order("name"),
+    sb.from("menu_items").select("*").order("name"),
+    sb.from("menu_recipes").select("*"),
+    sb.from("stock_movements").select("*, stock_items(name,unit)").order("created_at",{ascending:false}).limit(80),
+    sb.from("alerts").select("*").is("resolved_at",null),
+    sb.from("orders").select("*, order_lines(*)").order("placed_at",{ascending:false}).limit(40),
+    sb.from("staff").select("*").order("created_at"),
+  ];
+  if (isOwner()) q.push(sb.from("staff_invites").select("*"), sb.from("app_settings").select("*").maybeSingle());
+  const r = await Promise.all(q);
+  const err = r.find(x=>x.error); if (err) fail(err.error);
+  [S.stock,S.menu,S.recipes,S.moves,S.alerts,S.orders,S.staff] = r.slice(0,7).map(x=>x.data||[]);
+  if (isOwner()) { S.invites=r[7].data||[]; S.settings=r[8].data; }
+}
+let rt;
+function listen(){
+  if (rt) sb.removeChannel(rt);
+  let t; const refresh=()=>{ clearTimeout(t); t=setTimeout(async()=>{ await loadAll(); render(); },400); };
+  rt = sb.channel("stock").on("postgres_changes",{event:"*",schema:"public",table:"stock_movements"},refresh)
+         .on("postgres_changes",{event:"*",schema:"public",table:"alerts"},refresh).subscribe();
+  setInterval(refresh, 60000);
+}
+async function addMove(stock_item_id, change, reason, note){
+  const { error } = await sb.from("stock_movements").insert({ stock_item_id, change, reason, note, created_by:S.user.id });
+  if (error) throw error;
+}
+
+// ---------- Layout ----------
+const TABS = [["stock","Stock"],["sell","Record sale"],["import","Import orders"],["activity","Activity"],["setup","Setup"]];
+function render(){
+  const app=document.getElementById("app"); app.innerHTML="";
+  const head=$(`<header><div class="top"><h1>Amalfi <span>Desserts</span></h1>
+    <div class="row"><span class="sub">${esc(S.me.email)} · ${S.me.role}</span><button class="b s" id="out">Log out</button></div></div>
+    <nav>${TABS.filter(([k])=>k!=="setup"||isOwner()).map(([k,l])=>`<button data-t="${k}" class="${S.tab===k?"on":""}">${l}</button>`).join("")}</nav></header>`);
+  head.querySelector("#out").onclick=()=>sb.auth.signOut();
+  head.querySelectorAll("nav button").forEach(b=>b.onclick=()=>{S.tab=b.dataset.t;render();});
+  const main=$(`<main></main>`);
+  app.append(head, main);
+  ({stock:viewStock,sell:viewSell,import:viewImport,activity:viewActivity,setup:viewSetup})[S.tab](main);
+}
+
+// ---------- Stock ----------
+function viewStock(main){
+  const active=S.stock.filter(s=>s.active);
+  const out=active.filter(s=>s.status==="out"), low=active.filter(s=>s.status==="low");
+  if (out.length) main.append($(`<div class="banner">Out of stock: ${out.map(s=>esc(s.name)).join(", ")}</div>`));
+  if (low.length) main.append($(`<div class="banner warn">Running low: ${low.map(s=>`${esc(s.name)} (${plural(s.on_hand,s.unit)} left)`).join(", ")}</div>`));
+  if (!active.length) main.append($(`<div class="card muted">No stock items yet. ${isOwner()?"Add them in Setup.":""}</div>`));
+  const grid=$(`<div class="grid"></div>`);
+  for (const s of active){
+    const max=Math.max(Number(s.low_level)*3, Number(s.on_hand), 1);
+    const pct=Math.max(0,Math.min(100,Number(s.on_hand)/max*100));
+    const col=s.status==="ok"?"var(--ok)":s.status==="low"?"var(--low)":"var(--out)";
+    const packs = s.units_per_pack>1 ? ` · ≈ ${n(Math.floor(Number(s.on_hand)/s.units_per_pack*10)/10)} ${esc(s.pack_name||"packs")}` : "";
+    const c=$(`<div class="card item"><div class="row between"><h3>${esc(s.name)}</h3><span class="pill ${s.status}">${s.status==="ok"?"In stock":s.status==="low"?"Low":"Out"}</span></div>
+      <div class="num">${n(s.on_hand)} <span class="sub" style="font-family:Inter">${esc(s.unit)}s left${packs}</span></div>
+      <div class="bar"><i style="width:${pct}%;background:${col}"></i></div>
+      <div class="sub">Alert at ${plural(s.low_level,s.unit)} · in ${n(s.total_in)} · out ${n(s.total_out)}</div>
+      <div class="row" style="margin-top:12px"><button class="b s p" data-a="in">+ Add stock</button><button class="b s" data-a="used">Used / wasted</button>${isOwner()?`<button class="b s" data-a="count">Count</button>`:""}</div></div>`);
+    c.querySelector('[data-a="in"]').onclick=()=>moveDialog(s,"in");
+    c.querySelector('[data-a="used"]').onclick=()=>moveDialog(s,"used");
+    c.querySelector('[data-a="count"]')?.addEventListener("click",()=>moveDialog(s,"count"));
+    grid.append(c);
+  }
+  main.append(grid);
+}
+function closeModal(){ document.getElementById("modal").innerHTML=""; }
+function modal(html){ const m=$(`<div class="modal"><div class="card">${html}</div></div>`); m.onclick=(e)=>{if(e.target===m)closeModal();}; const box=document.getElementById("modal"); box.innerHTML=""; box.append(m); return m; }
+function moveDialog(s, kind){
+  const title = kind==="in"?`Add ${esc(s.name)}`:kind==="used"?`Take off ${esc(s.name)}`:`Count ${esc(s.name)}`;
+  const hasPack = s.units_per_pack>1;
+  const m=modal(`<h2>${title}</h2>
+    ${kind==="count"?`<p class="sub">Enter what's physically there now. Currently showing ${plural(s.on_hand,s.unit)}.</p>`:""}
+    <form><label>How many</label><div class="row"><input name="q" type="number" step="any" min="0" required style="flex:1" inputmode="decimal">
+    ${hasPack && kind!=="count"?`<select name="u"><option value="pack">${esc(s.pack_name||"pack")}s (×${n(s.units_per_pack)})</option><option value="unit">${esc(s.unit)}s</option></select>`:`<span class="muted">${esc(s.unit)}s</span>`}</div>
+    ${kind==="used"?`<label>Why</label><select name="r"><option value="used">Used / sold in shop</option><option value="waste">Wasted / expired</option></select>`:""}
+    <label>Note (optional)</label><input name="note" style="width:100%">
+    <div class="row" style="margin-top:16px;justify-content:flex-end"><button type="button" class="b" id="c">Cancel</button><button class="b p">Save</button></div></form>`);
+  m.querySelector("#c").onclick=closeModal;
+  m.querySelector("form").onsubmit=async(e)=>{
+    e.preventDefault(); const f=new FormData(e.target); let q=Number(f.get("q"));
+    if (f.get("u")==="pack") q*=Number(s.units_per_pack);
+    let change, reason;
+    if (kind==="in"){ change=q; reason="purchase"; }
+    else if (kind==="used"){ change=-q; reason=f.get("r"); }
+    else { change=q-Number(s.on_hand); reason="adjustment"; }
+    if (!change) { closeModal(); return toast("No change"); }
+    e.submitter.disabled=true;
+    try { await addMove(s.id, change, reason, f.get("note")||null); closeModal(); toast("Saved"); await loadAll(); render(); } catch(err){ e.submitter.disabled=false; fail(err); }
+  };
+  m.querySelector("input").focus();
+}
+
+// ---------- Record sale ----------
+function viewSell(main){
+  const cart={};
+  const menu=S.menu.filter(m=>m.active);
+  const el=$(`<div class="card"><h2>Record a sale</h2><p class="sub">For orders not coming in automatically. Stock comes off straight away.</p>
+    <label>Where from</label><select id="ch"><option value="in_store">In shop</option><option value="deliveroo">Deliveroo</option><option value="ubereats">Uber Eats</option><option value="justeat">Just Eat</option><option value="other">Other</option></select>
+    <label>Order number (optional)</label><input id="oid" placeholder="e.g. Deliveroo order #" style="width:100%">
+    <table style="margin-top:12px"><tbody>${menu.map(m=>`<tr><td>${esc(m.name)}<div class="sub">${recipeText(m.id)}</div></td><td style="width:130px"><div class="qty"><button data-d="-1" data-id="${m.id}">−</button><span id="q${m.id}">0</span><button data-d="1" data-id="${m.id}">+</button></div></td></tr>`).join("")}</tbody></table>
+    <div class="row" style="justify-content:flex-end;margin-top:14px"><button class="b p" id="go" disabled>Record sale</button></div></div>`);
+  el.querySelectorAll(".qty button").forEach(b=>b.onclick=()=>{ const id=b.dataset.id; cart[id]=Math.max(0,(cart[id]||0)+Number(b.dataset.d)); el.querySelector("#q"+id).textContent=cart[id]; el.querySelector("#go").disabled=!Object.values(cart).some(v=>v>0); });
+  el.querySelector("#go").onclick=async(e)=>{
+    const lines=Object.entries(cart).filter(([,q])=>q>0).map(([id,qty])=>({name:S.menu.find(m=>m.id==id).name,qty}));
+    const ch=el.querySelector("#ch").value, oid=el.querySelector("#oid").value.trim() || `manual-${Date.now()}`;
+    e.target.disabled=true;
+    const { data, error } = await sb.rpc("record_order",{p_channel:ch,p_external_id:oid,p_lines:lines});
+    if (error) { e.target.disabled=false; return fail(error); }
+    toast(data.status==="duplicate" ? "That order number was already recorded" : "Sale recorded"); await loadAll(); render();
+  };
+  main.append(el);
+}
+function recipeText(menuId){
+  return S.recipes.filter(r=>r.menu_item_id===menuId).map(r=>{ const s=S.stock.find(x=>x.id===r.stock_item_id); return s?`uses ${plural(r.qty,s.unit)} ${esc(s.name)}`:""; }).join(", ") || '<span style="color:var(--out)">no recipe set: won\'t take stock off</span>';
+}
+
+// ---------- Import ----------
+function parseCSV(text){
+  const rows=[]; let row=[], cell="", q=false;
+  for (let i=0;i<text.length;i++){ const c=text[i];
+    if (q){ if(c==='"'&&text[i+1]==='"'){cell+='"';i++;} else if(c==='"') q=false; else cell+=c; }
+    else if (c==='"') q=true; else if (c===","){row.push(cell);cell="";} else if (c==="\n"||c==="\r"){ if(c==="\r"&&text[i+1]==="\n")i++; row.push(cell); rows.push(row); row=[]; cell=""; } else cell+=c; }
+  if (cell||row.length){row.push(cell);rows.push(row);}
+  return rows.filter(r=>r.some(x=>x.trim()));
+}
+function viewImport(main){
+  const el=$(`<div class="card"><h2>Import delivery orders</h2>
+    <p class="sub">Download your orders report (CSV) from Deliveroo, Uber Eats or Just Eat and drop it here. Orders already imported are skipped automatically.</p>
+    <label>Which app is this from</label><select id="ch"><option value="deliveroo">Deliveroo</option><option value="ubereats">Uber Eats</option><option value="justeat">Just Eat</option><option value="other">Other</option></select>
+    <label>CSV file</label><input type="file" id="f" accept=".csv,text/csv">
+    <div id="map" style="margin-top:12px"></div><div id="res" style="margin-top:12px"></div></div>`);
+  main.append(el);
+  el.querySelector("#f").onchange=async(e)=>{
+    const file=e.target.files[0]; if(!file) return;
+    const rows=parseCSV(await file.text()); if(rows.length<2) return toast("That file looks empty");
+    const head=rows[0].map(h=>h.trim()); const guess=(re)=>Math.max(0,head.findIndex(h=>re.test(h)));
+    const opt=(sel)=>head.map((h,i)=>`<option value="${i}" ${i===sel?"selected":""}>${esc(h)}</option>`).join("");
+    const map=el.querySelector("#map");
+    map.innerHTML=`<p class="sub">${rows.length-1} rows found. Check which columns to use:</p>
+      <label>Order number column</label><select id="co">${opt(guess(/order.*(id|num|#|ref)|^order$|^id$/i))}</select>
+      <label>Item name column</label><select id="ci">${opt(guess(/item|product|dish|name/i))}</select>
+      <label>Quantity column</label><select id="cq"><option value="-1">(each row = 1)</option>${opt(head.findIndex(h=>/qty|quantity|count/i.test(h)))}</select>
+      <div class="row" style="justify-content:flex-end;margin-top:14px"><button class="b p" id="go">Import</button></div>`;
+    map.querySelector("#go").onclick=async(ev)=>{
+      ev.target.disabled=true; const co=+map.querySelector("#co").value, ci=+map.querySelector("#ci").value, cq=+map.querySelector("#cq").value;
+      const orders={};
+      for (const r of rows.slice(1)){ const id=(r[co]||"").trim(), name=(r[ci]||"").trim(); if(!id||!name) continue;
+        const qty = cq<0 ? 1 : Number(String(r[cq]).replace(/[^\d.]/g,""))||1;
+        (orders[id] ||= []).push({name,qty}); }
+      const ch=el.querySelector("#ch").value; let ok=0,dup=0; const unmatched=new Set();
+      const res=el.querySelector("#res"); res.textContent="Importing…";
+      for (const [id,lines] of Object.entries(orders)){
+        const { data, error } = await sb.rpc("record_order",{p_channel:ch,p_external_id:id,p_lines:lines});
+        if (error){ fail(error); break; }
+        if (data.status==="duplicate") dup++; else { ok++; (data.unmatched||[]).forEach(u=>unmatched.add(u)); }
+      }
+      res.innerHTML=`<div class="banner warn" style="background:var(--okbg);color:var(--ok)">Imported ${ok} orders${dup?`, skipped ${dup} already imported`:""}.</div>`+
+        (unmatched.size?`<div class="banner warn">These item names didn't match anything, so no stock was taken off for them: <b>${[...unmatched].map(esc).join(", ")}</b>. ${isOwner()?"Add them as a menu item or alias in Setup, then re-import won't double count.":"Ask the owner to add them in Setup."}</div>`:"");
+      await loadAll();
+    };
+  };
+}
+
+// ---------- Activity ----------
+function viewActivity(main){
+  const label={opening:"Opening stock",purchase:"Added",sale:"Sold",used:"Used",waste:"Wasted",adjustment:"Count correction"};
+  main.append($(`<div class="section"><h2>Recent stock changes</h2><div class="card" style="padding:4px 12px;overflow-x:auto"><table><thead><tr><th>When</th><th>Item</th><th>Change</th><th>Type</th><th>Note</th></tr></thead><tbody>
+    ${S.moves.map(m=>`<tr><td class="sub">${when(m.created_at)}</td><td>${esc(m.stock_items?.name)}</td><td style="font-weight:600;color:${m.change>0?"var(--ok)":"var(--out)"}">${m.change>0?"+":""}${n(m.change)}</td><td>${label[m.reason]}</td><td class="sub">${esc(m.note)}</td></tr>`).join("") || `<tr><td colspan="5" class="muted">Nothing yet</td></tr>`}
+    </tbody></table></div></div>`));
+  const chName={deliveroo:"Deliveroo",ubereats:"Uber Eats",justeat:"Just Eat",in_store:"In shop",other:"Other"};
+  main.append($(`<div class="section"><h2>Recent orders</h2><div class="card" style="padding:4px 12px;overflow-x:auto"><table><thead><tr><th>When</th><th>From</th><th>Order</th><th>Items</th></tr></thead><tbody>
+    ${S.orders.map(o=>`<tr><td class="sub">${when(o.placed_at)}</td><td>${chName[o.channel]}</td><td class="sub">${esc(o.external_id)}</td><td>${o.order_lines.map(l=>`${n(l.qty)}× ${esc(l.item_name)}${l.matched?"":' <span class="pill out">not matched</span>'}`).join("<br>")}</td></tr>`).join("") || `<tr><td colspan="4" class="muted">No orders yet</td></tr>`}
+    </tbody></table></div></div>`));
+}
+
+// ---------- Setup (owner) ----------
+function viewSetup(main){
+  // Stock items
+  const st=$(`<div class="section"><div class="row between"><h2>Stock items</h2><button class="b s p" id="add">+ New item</button></div>
+    <p class="sub">What you count. Set the alert level for when to reorder.</p>
+    <div class="card" style="padding:4px 12px;overflow-x:auto"><table><thead><tr><th>Name</th><th>Counted in</th><th>Pack</th><th>Alert at</th><th></th></tr></thead><tbody>
+    ${S.stock.map(s=>`<tr class="${s.active?"":"muted"}"><td>${esc(s.name)}</td><td>${esc(s.unit)}s</td><td>${s.units_per_pack>1?`1 ${esc(s.pack_name||"pack")} = ${n(s.units_per_pack)}`:"–"}</td><td>${n(s.low_level)}</td><td><button class="b s" data-e="${s.id}">Edit</button></td></tr>`).join("")}
+    </tbody></table></div></div>`);
+  st.querySelector("#add").onclick=()=>itemDialog();
+  st.querySelectorAll("[data-e]").forEach(b=>b.onclick=()=>itemDialog(S.stock.find(s=>s.id==b.dataset.e)));
+  main.append(st);
+
+  // Menu items
+  const mn=$(`<div class="section"><div class="row between"><h2>Menu items &amp; recipes</h2><button class="b s p" id="add">+ New menu item</button></div>
+    <p class="sub">What customers order, and how much stock each one uses. "Also called" lets orders match even if the delivery app spells it differently.</p>
+    <div class="card" style="padding:4px 12px;overflow-x:auto"><table><thead><tr><th>Menu item</th><th>Uses</th><th>Also called</th><th></th></tr></thead><tbody>
+    ${S.menu.map(m=>`<tr class="${m.active?"":"muted"}"><td>${esc(m.name)}</td><td class="sub">${recipeText(m.id)}</td><td class="sub">${m.aliases.map(esc).join(", ")}</td><td><button class="b s" data-e="${m.id}">Edit</button></td></tr>`).join("")}
+    </tbody></table></div></div>`);
+  mn.querySelector("#add").onclick=()=>menuDialog();
+  mn.querySelectorAll("[data-e]").forEach(b=>b.onclick=()=>menuDialog(S.menu.find(m=>m.id==b.dataset.e)));
+  main.append(mn);
+
+  // Staff
+  const sf=$(`<div class="section"><h2>Staff</h2><div class="card">
+    <table><tbody>${S.staff.map(p=>`<tr><td>${esc(p.email)}</td><td>${p.role}</td><td>${p.user_id!==S.user.id?`<button class="b s" data-rm="${p.user_id}">Remove</button>`:'<span class="sub">you</span>'}</td></tr>`).join("")}
+    ${S.invites.map(i=>`<tr class="muted"><td>${esc(i.email)}</td><td>invited</td><td><button class="b s" data-ri="${esc(i.email)}">Cancel</button></td></tr>`).join("")}</tbody></table>
+    <form class="row" style="margin-top:12px"><input name="email" type="email" required placeholder="staff email" style="flex:1"><select name="role"><option value="staff">Staff</option><option value="owner">Owner</option></select><button class="b p">Invite</button></form>
+    <p class="sub">After inviting, they open this page and choose "Create account" with that email.</p></div></div>`);
+  sf.querySelector("form").onsubmit=async(e)=>{ e.preventDefault(); const f=new FormData(e.target);
+    const { error } = await sb.from("staff_invites").upsert({email:String(f.get("email")).toLowerCase().trim(), role:f.get("role")}); if(error) return fail(error); toast("Invited"); await loadAll(); render(); };
+  sf.querySelectorAll("[data-rm]").forEach(b=>b.onclick=async()=>{ const { error } = await sb.from("staff").delete().eq("user_id",b.dataset.rm); if(error) return fail(error); await loadAll(); render(); });
+  sf.querySelectorAll("[data-ri]").forEach(b=>b.onclick=async()=>{ await sb.from("staff_invites").delete().eq("email",b.dataset.ri); await loadAll(); render(); });
+  main.append(sf);
+
+  // Alerts & connections
+  const cfg=S.settings||{};
+  const hook=`${SUPABASE_URL}/functions/v1/orders-webhook`;
+  const al=$(`<div class="section"><h2>Alerts &amp; delivery connection</h2><div class="card">
+    <form id="al"><label>Send low-stock emails to (comma separated)</label><input name="emails" value="${esc((cfg.alert_emails||[]).join(", "))}" style="width:100%">
+    <label>Resend API key <a href="https://resend.com" target="_blank" rel="noopener" class="sub">(free account at resend.com)</a></label><input name="key" type="password" placeholder="${cfg.resend_api_key?"•••••• saved – type to replace":"re_..."}" style="width:100%">
+    <div class="row" style="margin-top:12px;justify-content:flex-end"><button type="button" class="b" id="test">Send test email</button><button class="b p">Save</button></div></form>
+    <p class="sub">Emails go out within 5 minutes of something running low, plus a summary every morning at 8am.</p>
+    <hr style="border:0;border-top:1px solid var(--line);margin:16px 0">
+    <h3 style="font-size:16px">Automatic delivery orders</h3>
+    <p class="sub">Give these to your order-integration provider (e.g. Deliverect) or developer. Each order they send takes stock off automatically.</p>
+    <label>Webhook address</label><div class="row"><code style="flex:1">${hook}</code><button class="b s" data-copy="${hook}">Copy</button></div>
+    <label>Secret (header <code>x-webhook-secret</code>)</label><div class="row"><code style="flex:1" id="sec">••••••••••••</code><button class="b s" id="show">Show</button><button class="b s" data-copy="${esc(cfg.webhook_secret||"")}">Copy</button></div>
+    </div></div>`);
+  al.querySelector("#show").onclick=()=>{ al.querySelector("#sec").textContent=cfg.webhook_secret; };
+  al.querySelectorAll("[data-copy]").forEach(b=>b.onclick=async()=>{ try{ await navigator.clipboard.writeText(b.dataset.copy); toast("Copied"); }catch{ toast("Couldn't copy, select it instead"); } });
+  al.querySelector("#al").onsubmit=async(e)=>{ e.preventDefault(); const f=new FormData(e.target);
+    const upd={ alert_emails:String(f.get("emails")).split(",").map(x=>x.trim()).filter(Boolean), updated_at:new Date().toISOString() };
+    if (f.get("key")) upd.resend_api_key=String(f.get("key")).trim();
+    const { error } = await sb.from("app_settings").update(upd).eq("id",true); if(error) return fail(error); toast("Saved"); await loadAll(); render(); };
+  al.querySelector("#test").onclick=async(e)=>{ e.target.disabled=true;
+    const { data, error } = await sb.functions.invoke("send-alerts",{ body:{mode:"test"} }); e.target.disabled=false;
+    if (error) return fail(error); toast(data.sent ? "Test email sent" : (data.reason || "Email failed: check the key and address")); };
+  main.append(al);
+}
+function itemDialog(s){
+  const m=modal(`<h2>${s?"Edit":"New"} stock item</h2><form>
+    <label>Name</label><input name="name" required value="${esc(s?.name)}" style="width:100%">
+    <label>Counted in (singular)</label><input name="unit" required value="${esc(s?.unit||"slice")}" style="width:100%" placeholder="slice, piece, tub">
+    <div class="row"><div style="flex:1"><label>Bought as (optional)</label><input name="pack" value="${esc(s?.pack_name||"")}" placeholder="whole cheesecake" style="width:100%"></div>
+    <div style="width:110px"><label>…which is</label><input name="upp" type="number" min="1" step="any" value="${s?.units_per_pack||1}" style="width:100%"></div></div>
+    <label>Alert me when it drops to</label><input name="low" type="number" min="0" step="any" value="${s?.low_level??5}" style="width:100%">
+    ${s?`<label><input type="checkbox" name="active" ${s.active?"checked":""}> Active (untick to hide)</label>`:`<label>Starting amount (optional)</label><input name="start" type="number" min="0" step="any" style="width:100%">`}
+    <div class="row" style="margin-top:16px;justify-content:flex-end"><button type="button" class="b" id="c">Cancel</button><button class="b p">Save</button></div></form>`);
+  m.querySelector("#c").onclick=closeModal;
+  m.querySelector("form").onsubmit=async(e)=>{ e.preventDefault(); const f=new FormData(e.target);
+    const row={ name:f.get("name").trim(), unit:f.get("unit").trim(), pack_name:f.get("pack").trim()||null, units_per_pack:Number(f.get("upp"))||1, low_level:Number(f.get("low"))||0 };
+    if (s) row.active=!!f.get("active");
+    const r = s ? await sb.from("stock_items").update(row).eq("id",s.id).select().single() : await sb.from("stock_items").insert(row).select().single();
+    if (r.error) return fail(r.error);
+    if (!s && Number(f.get("start"))>0) await addMove(r.data.id, Number(f.get("start")), "opening", "Starting stock").catch(fail);
+    closeModal(); toast("Saved"); await loadAll(); render(); };
+}
+function menuDialog(mi){
+  const rec = mi ? S.recipes.filter(r=>r.menu_item_id===mi.id).map(r=>({...r})) : [];
+  const m=modal(`<h2>${mi?"Edit":"New"} menu item</h2><form>
+    <label>Name (as on the menu)</label><input name="name" required value="${esc(mi?.name)}" style="width:100%">
+    <label>Also called (comma separated, optional)</label><input name="aliases" value="${esc((mi?.aliases||[]).join(", "))}" style="width:100%" placeholder="e.g. biscoff slice, lotus cheesecake">
+    <label>Uses this stock</label><div id="rec"></div><button type="button" class="b s" id="addr" style="margin-top:6px">+ Add stock it uses</button>
+    ${mi?`<label><input type="checkbox" name="active" ${mi.active?"checked":""}> Active</label>`:""}
+    <div class="row" style="margin-top:16px;justify-content:flex-end"><button type="button" class="b" id="c">Cancel</button><button class="b p">Save</button></div></form>`);
+  const box=m.querySelector("#rec");
+  const draw=()=>{ box.innerHTML=""; rec.forEach((r,i)=>{ const row=$(`<div class="row" style="margin-bottom:6px"><select style="flex:1">${S.stock.map(s=>`<option value="${s.id}" ${s.id==r.stock_item_id?"selected":""}>${esc(s.name)}</option>`).join("")}</select><input type="number" min="0.01" step="any" value="${r.qty}" style="width:80px"><button type="button" class="b s">✕</button></div>`);
+    row.querySelector("select").onchange=(e)=>r.stock_item_id=Number(e.target.value); row.querySelector("input").oninput=(e)=>r.qty=Number(e.target.value);
+    row.querySelector("button").onclick=()=>{rec.splice(i,1);draw();}; box.append(row); }); };
+  m.querySelector("#addr").onclick=()=>{ if(!S.stock.length) return toast("Add a stock item first"); rec.push({stock_item_id:S.stock[0].id,qty:1}); draw(); };
+  draw();
+  m.querySelector("#c").onclick=closeModal;
+  m.querySelector("form").onsubmit=async(e)=>{ e.preventDefault(); const f=new FormData(e.target);
+    const row={ name:f.get("name").trim(), aliases:String(f.get("aliases")).split(",").map(x=>x.trim().toLowerCase()).filter(Boolean) };
+    if (mi) row.active=!!f.get("active");
+    const r = mi ? await sb.from("menu_items").update(row).eq("id",mi.id).select().single() : await sb.from("menu_items").insert(row).select().single();
+    if (r.error) return fail(r.error);
+    const id=r.data.id;
+    const del = await sb.from("menu_recipes").delete().eq("menu_item_id",id); if (del.error) return fail(del.error);
+    const merged={}; rec.filter(x=>x.qty>0).forEach(x=>merged[x.stock_item_id]=(merged[x.stock_item_id]||0)+x.qty);
+    const ins=Object.entries(merged).map(([sid,qty])=>({menu_item_id:id,stock_item_id:Number(sid),qty}));
+    if (ins.length){ const r2=await sb.from("menu_recipes").insert(ins); if(r2.error) return fail(r2.error); }
+    closeModal(); toast("Saved"); await loadAll(); render(); };
+}
+
+boot();
+</script>
+</body>
+</html>
