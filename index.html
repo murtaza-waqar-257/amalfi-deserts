@@ -109,6 +109,13 @@
   .sellbar{position:fixed;left:0;right:0;bottom:84px;padding:10px 14px;background:linear-gradient(transparent,var(--bg) 30%);display:flex;gap:8px;align-items:center;z-index:9}
   .sellbar .plain{width:auto}
   .sellbar .giant{margin:0}
+  .sumcards{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+  .sumcards div{background:#fff;border:1px solid var(--line);border-radius:16px;padding:14px 8px;text-align:center;font-size:15px;color:var(--muted)}
+  .sumcards b{display:block;font-family:Fraunces,serif;font-size:34px;color:var(--ink)}
+  .sumcards .u b{color:var(--out)} .sumcards .l b{color:var(--ok)}
+  table.today td,table.today th{font-size:16px;padding:10px 4px} table.today td:not(:first-child),table.today th{text-align:center}
+  table.today td.u{color:var(--out);font-weight:600} table.today td.l{font-weight:700}
+  .emoji.sm{font-size:20px}
 </style>
 </head>
 <body>
@@ -178,7 +185,7 @@ async function loadAll(){
     sb.from("stock_levels").select("*").order("name"),
     sb.from("menu_items").select("*").order("name"),
     sb.from("menu_recipes").select("*"),
-    sb.from("stock_movements").select("*, stock_items(name,unit)").order("created_at",{ascending:false}).limit(80),
+    sb.from("stock_movements").select("stock_item_id,change,reason,created_at").gte("created_at", new Date(new Date().setHours(0,0,0,0)).toISOString()),
     sb.from("alerts").select("*").is("resolved_at",null),
     sb.from("orders").select("*, order_lines(*)").order("placed_at",{ascending:false}).limit(40),
     sb.from("staff").select("*").order("created_at"),
@@ -209,11 +216,14 @@ const WORDS = {
   allGood:"Everything is OK 👍", add:"Add", takeOut:"Take out", fixCount:"Fix the count",
   howMany:"How many?", save:"Save", cancel:"Cancel", used:"Used", thrown:"Thrown away",
   whereFrom:"Where was it sold?", shop:"Shop", tapToAdd:"Tap what was sold", done:"Done — take off stock",
-  clear:"Clear", left:"left", history:"History", importOrders:"Upload delivery report", setup:"Settings", logout:"Log out",
+  clear:"Clear", left:"left", history:"Today",got:"Got",usedToday:"Used today",leftNow:"Left", importOrders:"Upload delivery report", setup:"Settings", logout:"Log out",
   countNow:"How many are there now?",
 };
 const W = (k, ...a) => typeof WORDS[k] === "function" ? WORDS[k](...a) : WORDS[k];
 const ICON = (name) => { const s=name.toLowerCase();
+  if (s.includes("matilda")) return "🍫"; if (s.includes("milk cake")) return "🥛"; if (s.includes("tiramisu")) return "☕";
+  if (s.includes("pudding")) return "🍮"; if (s.includes("lava")) return "🌋"; if (s.includes("apple")||s.includes("crumble")) return "🍏";
+  if (s.includes("dream")) return "🎂";
   if (s.includes("brownie")) return "🍫"; if (s.includes("cookie")) return "🍪"; if (s.includes("cheesecake")) return "🍰";
   if (s.includes("cake")) return "🎂"; if (s.includes("ice")) return "🍨"; if (s.includes("tub")) return "🥣";
   if (s.includes("box")||s.includes("sharer")) return "📦"; if (s.includes("donut")||s.includes("doughnut")) return "🍩"; return "🧁"; };
@@ -332,7 +342,7 @@ function viewSell(main){
 
 // ---------- More ----------
 function viewMore(main){
-  const items=[["import","📄",W("importOrders")],["activity","🕘",W("history")]];
+  const items=[["import","📄",W("importOrders")],["activity","📊",W("history")]];
   if (isOwner()) items.push(["setup","⚙️",W("setup")]);
   const el=$(`<div class="list">${items.map(([k,ic,l])=>`<button class="rowbtn" data-t="${k}"><span class="emoji">${ic}</span><span class="mid"><span class="nm">${l}</span></span><span class="chev">›</span></button>`).join("")}
     <button class="rowbtn" id="out"><span class="emoji">🚪</span><span class="mid"><span class="nm">${W("logout")}</span><span class="st muted">${esc(S.me.email)}</span></span></button></div>`);
@@ -392,16 +402,20 @@ function viewImport(main){
   };
 }
 
-// ---------- Activity ----------
+// ---------- Today ----------
 function viewActivity(main){
-  const label={opening:"Opening stock",purchase:"Added",sale:"Sold",used:"Used",waste:"Wasted",adjustment:"Count correction"};
-  main.append($(`<div class="section"><h2>Recent stock changes</h2><div class="card" style="padding:4px 12px;overflow-x:auto"><table><thead><tr><th>When</th><th>Item</th><th>Change</th><th>Type</th><th>Note</th></tr></thead><tbody>
-    ${S.moves.map(m=>`<tr><td class="sub">${when(m.created_at)}</td><td>${esc(m.stock_items?.name)}</td><td style="font-weight:600;color:${m.change>0?"var(--ok)":"var(--out)"}">${m.change>0?"+":""}${n(m.change)}</td><td>${label[m.reason]}</td><td class="sub">${esc(m.note)}</td></tr>`).join("") || `<tr><td colspan="5" class="muted">Nothing yet</td></tr>`}
-    </tbody></table></div></div>`));
-  const chName={deliveroo:"Deliveroo",ubereats:"Uber Eats",justeat:"Just Eat",in_store:"In shop",other:"Other"};
-  main.append($(`<div class="section"><h2>Recent orders</h2><div class="card" style="padding:4px 12px;overflow-x:auto"><table><thead><tr><th>When</th><th>From</th><th>Order</th><th>Items</th></tr></thead><tbody>
-    ${S.orders.map(o=>`<tr><td class="sub">${when(o.placed_at)}</td><td>${chName[o.channel]}</td><td class="sub">${esc(o.external_id)}</td><td>${o.order_lines.map(l=>`${n(l.qty)}× ${esc(l.item_name)}${l.matched?"":' <span class="pill out">not matched</span>'}`).join("<br>")}</td></tr>`).join("") || `<tr><td colspan="4" class="muted">No orders yet</td></tr>`}
-    </tbody></table></div></div>`));
+  const used={}, added={};
+  for (const m of S.moves){ if (m.change<0 && m.reason!=="adjustment") used[m.stock_item_id]=(used[m.stock_item_id]||0)-Number(m.change);
+                            if (m.change>0 && m.reason==="purchase") added[m.stock_item_id]=(added[m.stock_item_id]||0)+Number(m.change); }
+  const rows=S.stock.filter(s=>s.active);
+  const tot=rows.reduce((t,s)=>({got:t.got+Number(s.total_in),used:t.used+(used[s.id]||0),left:t.left+Number(s.on_hand)}),{got:0,used:0,left:0});
+  const day=new Date().toLocaleDateString("en-GB",{weekday:"long",day:"numeric",month:"long"});
+  main.append($(`<div><p class="muted" style="margin:0 0 10px">${day}</p>
+    <div class="sumcards"><div><b>${n(tot.got)}</b>${W("got")}</div><div class="u"><b>${n(tot.used)}</b>${W("usedToday")}</div><div class="l"><b>${n(tot.left)}</b>${W("leftNow")}</div></div>
+    <div class="card" style="padding:4px 12px;margin-top:12px"><table class="today"><thead><tr><th></th><th>${W("got")}</th><th>${W("usedToday")}</th><th>${W("leftNow")}</th></tr></thead><tbody>
+    ${rows.map(s=>`<tr><td><span class="emoji sm">${ICON(s.name)}</span> ${esc(s.name)}</td><td>${n(s.total_in)}</td><td class="u">${n(used[s.id]||0)}</td><td class="l" style="color:${STATUS[s.status][1]}">${n(s.on_hand)}</td></tr>`).join("")}
+    </tbody></table></div>
+    <p class="sub">"${W("got")}" is everything bought so far. "${W("usedToday")}" counts sales, tastings and anything thrown away since midnight.</p></div>`));
 }
 
 // ---------- Setup (owner) ----------
